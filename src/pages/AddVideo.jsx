@@ -9,7 +9,12 @@ export default function AddVideo() {
   const videoRef = useRef(null);
 
   const LoginSchema = Yup.object().shape({
-    videoFile: Yup.string().required("required"),
+    videoFile: Yup.mixed()
+      .test("fileSize", "File size must be 5 MB or less", (value) => {
+        if (!value) return true; // Allow empty file
+        return value.size <= 5 * 1024 * 1024; // 5 MB in bytes
+      })
+      .required("required"),
   });
 
   const handleFileChange = (event) => {
@@ -32,6 +37,7 @@ export default function AddVideo() {
         }}
         validationSchema={LoginSchema}
         onSubmit={(values) => {
+          setButtonLoader(true);
           console.log("values::: ", values.videoFile);
           let img1FormData = new FormData();
           img1FormData.append("file", values.videoFile);
@@ -40,8 +46,11 @@ export default function AddVideo() {
             .then((res) => {
               console.log("update :::", res.data);
               alert("Upload Successfully");
+              setButtonLoader(false);
             })
             .catch((err) => {
+              setButtonLoader(false);
+
               console.log("update err :::", err);
             });
         }}
